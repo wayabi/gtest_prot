@@ -1,24 +1,22 @@
-COMPILER  = g++
-CFLAGS    = -g -MMD -MP -Wall -Wextra -Winit-self -Wno-missing-field-initializers -std=c++0x -Wno-unused-function
-ifeq "$(shell getconf LONG_BIT)" "64"
-  LDFLAGS = -L/usr/lib64
-else
-  LDFLAGS = 
-endif
-LIBS      = -lboost_system -lboost_thread -lboost_math_c99 -lboost_program_options -lpthread
-INCLUDE   = -I./include
-TARGET    = ./a.out
-SRCDIR    = ./src
+COMPILER	= g++
+CFLAGS		= -g -MMD -MP -Wall -Wextra -Winit-self -Wno-missing-field-initializers -std=c++0x -Wno-unused-function -DBOOST_LOG_DYN_LINK
+LDFLAGS = -L../../boost_1_66_0/stage/lib
+LIBS			= -lboost_system -lboost_thread -lboost_math_c99 -lboost_program_options -lboost_log -lboost_log_setup -lpthread
+INCLUDE	 = -I./include -I../../boost_1_66_0
+TARGET		= ./a.out
+SRCDIR		= ./src
+#for test private method
+#SRCDIR		= ./public_src
 ifeq "$(strip $(SRCDIR))" ""
-  SRCDIR  = .
+	SRCDIR	= .
 endif
-SOURCES   = $(wildcard $(SRCDIR)/*.cpp)
-OBJDIR    = ./obj
+SOURCES	 = $(wildcard $(SRCDIR)/*.cpp)
+OBJDIR		= ./obj
 ifeq "$(strip $(OBJDIR))" ""
-  OBJDIR  = .
+	OBJDIR	= .
 endif
-OBJECTS   = $(addprefix $(OBJDIR)/, $(notdir $(SOURCES:.cpp=.o)))
-DEPENDS   = $(OBJECTS:.o=.d)
+OBJECTS	 = $(addprefix $(OBJDIR)/, $(notdir $(SOURCES:.cpp=.o)))
+DEPENDS	 = $(OBJECTS:.o=.d)
 
 $(TARGET): $(OBJECTS)
 	$(COMPILER) -o $@ $^ $(LDFLAGS) $(LIBS)
@@ -31,11 +29,11 @@ TEST_TARGET=./gtest
 LIB_DIR=./lib
 TEST_DIR=./test
 TEST_SRC= $(wildcard $(TEST_DIR)/*.cpp)
-TEST_OBJS  = $(addprefix $(OBJDIR)/, $(notdir $(TEST_SRC:.cpp=.o)))
+TEST_OBJS	= $(addprefix $(OBJDIR)/, $(notdir $(TEST_SRC:.cpp=.o)))
 GTEST_DIR=../googletest/googletest
 GTEST_INC=$(GTEST_DIR)/include
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
-                $(GTEST_DIR)/include/gtest/internal/*.h
+								$(GTEST_DIR)/include/gtest/internal/*.h
 GTEST_LIBS = $(GTEST_DIR)/lib/libgtest.a $(GTEST_DIR)/lib/libgtest_main.a
 
 $(OBJDIR)/gtest-all.o : $(TEST_SRC)
@@ -51,10 +49,11 @@ $(LIB_DIR)/gtest_main.a : $(OBJDIR)/gtest-all.o $(OBJDIR)/gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
 .PHONY: test
+OBJS_EXCEPT_MAIN = $(addprefix $(OBJDIR)/, $(filter-out main.o, $(notdir $(SOURCES:.cpp=.o))))
 test: $(TEST_TARGET)
 $(TEST_TARGET) : $(TARGET) $(TEST_OBJS) $(LIB_DIR)/gtest_main.a
-	$(COMPILER) $(LDFLAGS) -o $@ $(TEST_OBJS) \
-	$(LIB_DIR)/gtest_main.a $(LIBS) 
+	$(COMPILER) $(LDFLAGS) -o $@ $(TEST_OBJS) $(OBJS_EXCEPT_MAIN) \
+	$(LIB_DIR)/gtest_main.a $(LIBS)
 
 $(OBJDIR)/%.o: $(TEST_DIR)/%.cpp $(GTEST_HEADERS)
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
@@ -66,4 +65,4 @@ clean:
 	-rm -f $(OBJECTS) $(DEPENDS) $(TARGET)
 
 -include $(DEPENDS)
-#	@[ -d $(BIN_DIR) ] || mkdir -p $(BIN_DIR)
+# @[ -d $(BIN_DIR) ] || mkdir -p $(BIN_DIR)
