@@ -5,8 +5,6 @@ LIBS			= -lboost_system -lboost_thread -lboost_math_c99 -lboost_program_options 
 INCLUDE	 = -I./include -I../../boost_1_66_0
 TARGET		= ./a.out
 SRCDIR		= ./src
-#for test private method
-#SRCDIR		= ./public_src
 ifeq "$(strip $(SRCDIR))" ""
 	SRCDIR	= .
 endif
@@ -50,6 +48,7 @@ $(LIB_DIR)/gtest_main.a : $(OBJDIR)/gtest-all.o $(OBJDIR)/gtest_main.o
 
 .PHONY: test
 OBJS_EXCEPT_MAIN = $(addprefix $(OBJDIR)/, $(filter-out main.o, $(notdir $(SOURCES:.cpp=.o))))
+SRCDIR=./public_src
 test: $(TEST_TARGET)
 $(TEST_TARGET) : $(TARGET) $(TEST_OBJS) $(LIB_DIR)/gtest_main.a
 	$(COMPILER) $(LDFLAGS) -o $@ $(TEST_OBJS) $(OBJS_EXCEPT_MAIN) \
