@@ -7,3 +7,4 @@ do
 done
 
 cp src/*.cpp public_src/
+rm public_src/main.cpp
